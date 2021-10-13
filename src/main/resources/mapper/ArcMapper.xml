@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.hxsearch.arcsearch.mapper.ArcMapper">
+    <select id="search" parameterType="com.hxsearch.arcsearch.request.QueryParameter" resultType="java.util.Map">
+    select gtbale.* from (
+      select ROWNUM as rn,
+      <if test="outFields!=null and outFields!='' ">
+           ${outFields},
+      </if>
+      <if test="isReturnGeometry==true">
+          st_astext(shape) as geo
+      </if>
+      from ${layerName} where 1=1
+      <if test="filter!=null and filter!=''">
+          and ${filter}
+      </if>
+      <if test="spatialRel=='INTERSECTS' and spatialFilter!=null">
+        and st_intersects(st_geomfromtext('${spatialFilter}',4326),shape)=1
+      </if>
+      <if test="spatialRel=='DISJOINT' and spatialFilter!=null">
+          and  st_disjoint(st_geomfromtext('${spatialFilter}',4326),shape)=1
+      </if>
+      <if test="spatialRel=='CONTAINS' and spatialFilter!=null">
+          and st_contains(st_geomfromtext('${spatialFilter}',4326),shape)=1
+      </if>
+      <if test="spatialRel=='TOUCHES' and spatialFilter!=null">
+          and st_touches(st_geomfromtext('${spatialFilter}',4326),shape)=1
+      </if>
+      <if test="spatialRel=='CROSSES' and spatialFilter!=null">
+          and st_crosses(st_geomfromtext('${spatialFilter}',4326),shape)=1
+      </if>
+      <if test="spatialRel=='WITHIN'  and spatialFilter!=null">
+          and st_within(st_geomfromtext('${spatialFilter}',4326),shape)=1
+      </if>
+      <if test="spatialRel=='OVERLAPS'  and spatialFilter!=null">
+          and  st_overlaps(st_geomfromtext('${spatialFilter}',4326),shape)=1
+      </if>
+      <if test="orderByFields!=null and orderByFields!=''">
+          order by orderByFields
+      </if>
+        ) gtbale
+     where 1=1
+     <if test="current!=null and current!='' and limit!=null and limit!=''">
+        and gtbale.rn &lt;= ${current} * ${limit} and  gtbale.rn &gt; (${current}-1) * ${limit}
+     </if>
+   </select>
+    <select id="getFeatureCounts" resultType="java.lang.Integer" statementType="STATEMENT" parameterType="java.lang.String">
+        select count(*) from ${layerName}
+    </select>
+    <select id="getFeaturesByCityCode"  resultType="java.util.Map" statementType="STATEMENT">
+     select gtbale.* from (
+     select ROWNUM as rn,
+     <if test="queryParameter.outFields!=null and queryParameter.outFields!='' ">
+         ${queryParameter.outFields},
+     </if>
+     <if test="queryParameter.isReturnGeometry==true">
+         st_astext(shape) as geo
+     </if>
+     from ${queryParameter.layerName} where 1=1
+     <if test="queryParameter.filter!=null and queryParameter.filter!=''">
+         and ${queryParameter.filter}
+     </if>
+     <if test="queryParameter.spatialRel=='INTERSECTS' and queryParameter.spatialFilter!=null">
+         and st_intersects(st_geomfromtext('${queryParameter.spatialFilter}',4326),shape)=1
+     </if>
+     <if test="queryParameter.spatialRel=='DISJOINT' and queryParameter.spatialFilter!=null">
+         and  st_disjoint(st_geomfromtext('${queryParameter.spatialFilter}',4326),shape)=1
+     </if>
+     <if test="queryParameter.spatialRel=='CONTAINS' and queryParameter.spatialFilter!=null">
+         and st_contains(st_geomfromtext('${queryParameter.spatialFilter}',4326),shape)=1
+     </if>
+     <if test="queryParameter.spatialRel=='TOUCHES' and queryParameter.spatialFilter!=null">
+         and st_touches(st_geomfromtext('${queryParameter.spatialFilter}',4326),shape)=1
+     </if>
+     <if test="queryParameter.spatialRel=='CROSSES'  and queryParameter.spatialFilter!=null">
+         and st_crosses(st_geomfromtext('${queryParameter.spatialFilter}',4326),shape)=1
+     </if>
+     <if test="queryParameter.spatialRel=='WITHIN' and queryParameter.spatialFilter!=null">
+         and st_within(st_geomfromtext('${queryParameter.spatialFilter}',4326),shape)=1
+     </if>
+     <if test="queryParameter.spatialRel=='OVERLAPS' and queryParameter.spatialFilter!=null">
+         and  st_overlaps(st_geomfromtext('${queryParameter.spatialFilter}',4326),shape)=1
+     </if>
+     <if test="cityTable!=null and cityTable!='' and cityCode!=null and cityCode!=''">
+         and st_intersects((select cTable.shape from ${cityTable} cTable where COUNTYCODE= ${cityCode}),shape)=1
+     </if>
+     <if test="queryParameter.orderByFields!=null and queryParameter.orderByFields!=''">
+         order by queryParameter.orderByFields
+     </if>
+     ) gtbale
+     where 1=1
+     <if test="queryParameter.current!=null and queryParameter.current!='' and queryParameter.limit!=null and queryParameter.limit!=''">
+         and gtbale.rn &lt;= ${queryParameter.current} * ${queryParameter.limit} and  gtbale.rn &gt; (${queryParameter.current}-1) * ${queryParameter.limit}
+     </if>
+    </select>
+</mapper>

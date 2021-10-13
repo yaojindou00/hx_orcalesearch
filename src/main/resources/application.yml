@@ -1,0 +1,13 @@
+server:
+  port: 8082
+mybatis:
+  mapper-locations: classpath:mapper/*Mapper.xml
+spring:
+  datasource:
+    url: jdbc:oracle:thin:@10.61.5.41:1521:gis
+    username: sde
+    password: sde$123qaz
+    driver-class-name: oracle.jdbc.OracleDriver
+logging:
+  level:
+    com.hxsearch.arcsearch.mapper: debug
